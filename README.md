@@ -1,6 +1,40 @@
 # CryptoVisor - Advanced Crypto Trading Analytics Platform
 
-![CryptoVisor Platform](screenshots/header.png)
+<div align="center">
+  <img src="screenshots/header.png" alt="CryptoVisor Landing Page" width="100%" />
+  <p><em>CryptoVisor Landing Page with Modern UI</em></p>
+</div>
+
+## 📊 Platform Overview
+
+<div align="center">
+  <img src="screenshots/trading-view.png" alt="BTC-USD Trading View" width="100%" />
+  <p><em>Real-time BTC-USD Trading Analytics Dashboard</em></p>
+</div>
+
+### Key Features Showcase
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+  <div>
+    <img src="screenshots/spread-indicator.png" alt="Spread Indicator" width="100%" />
+    <p><em>Live Spread Indicator with Historical Data</em></p>
+  </div>
+  <div>
+    <img src="screenshots/orderbook-imbalance.png" alt="Orderbook Imbalance" width="100%" />
+    <p><em>Real-time Orderbook Imbalance Analysis</em></p>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+  <div>
+    <img src="screenshots/market-depth.png" alt="Market Depth Chart" width="100%" />
+    <p><em>Dynamic Market Depth Visualization</em></p>
+  </div>
+  <div>
+    <img src="screenshots/orderbook.png" alt="Order Book" width="100%" />
+    <p><em>Real-time Order Book with Custom Grouping</em></p>
+  </div>
+</div>
 
 CryptoVisor is a sophisticated real-time cryptocurrency trading analytics platform built with Next.js, offering professional-grade tools for market analysis and trading insights.
 
