@@ -14,35 +14,21 @@
 
 ### Key Features Showcase
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-  <div>
-    <img src="screenshots/spread-indicator.png" alt="Spread Indicator" width="100%" />
-    <p><em>Live Spread Indicator with Historical Data</em></p>
-  </div>
-  <div>
-    <img src="screenshots/orderbook-imbalance.png" alt="Orderbook Imbalance" width="100%" />
-    <p><em>Real-time Orderbook Imbalance Analysis</em></p>
-  </div>
-</div>
 
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
   <div>
     <img src="screenshots/market-depth.png" alt="Market Depth Chart" width="100%" />
     <p><em>Dynamic Market Depth Visualization</em></p>
   </div>
-  <div>
-    <img src="screenshots/orderbook.png" alt="Order Book" width="100%" />
-    <p><em>Real-time Order Book with Custom Grouping</em></p>
-  </div>
 </div>
 
 CryptoVisor is a sophisticated real-time cryptocurrency trading analytics platform built with Next.js, offering professional-grade tools for market analysis and trading insights.
 
 ## 🎥 Demo Video
-[Watch the Demo Video](YOUR_VIDEO_LINK_HERE)
+[Watch the Demo Video](https://drive.google.com/file/d/1uKyvOWAmTp4um0kBjLmykw-T6gX9uAuT/view?usp=sharing)
 
 ## 🔗 Live Demo
-[View Live Project](YOUR_GITHUB_PAGES_OR_DEPLOYMENT_LINK)
+[View Live Project](https://github.com/shukla2288/Crypto_Visor)
 
 ## ✨ Features
 
@@ -175,18 +161,10 @@ NEXT_PUBLIC_API_URL=https://api.binance.com/api/v3/
 - `lucide-react`: ^0.294.0
 - `tailwind-merge`: ^2.1.0
 
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check [issues page](YOUR_GITHUB_REPO_LINK/issues).
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👨‍💻 Author
 
-Created by [Your Name]
+Created by Saumy Shukla
 
 ---
 
-⭐️ If you found this project helpful, please give it a star on GitHub!

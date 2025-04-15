@@ -150,13 +150,13 @@ export default function OrderBook({ loading, orderBookData, selectedPair }: Orde
           <div className="flex items-center gap-2">
             <Book className="h-6 w-6 text-amber-500" />
             <CardTitle className="text-xl font-bold text-gray-100">
-              Order Book
+          Order Book
               {selectedPair && (
                 <span className="ml-2 text-sm text-gray-400">
                   {selectedPair.name}
                 </span>
               )}
-            </CardTitle>
+        </CardTitle>
           </div>
           <div className="flex items-center gap-3">
             {/* Display Mode Toggle */}
@@ -264,7 +264,7 @@ export default function OrderBook({ loading, orderBookData, selectedPair }: Orde
                   <div>Price</div>
                   <div className="text-right">Amount</div>
                   <div className="text-right">Total</div>
-                </div>
+            </div>
                 <div className="space-y-px">
                   {orderBookData.bids.map((bid) => (
                     <div

@@ -301,7 +301,7 @@ export default function SpreadIndicator({ loading, spreadHistory }: SpreadIndica
 
       // Update chart data with requestAnimationFrame for smooth updates
       requestAnimationFrame(() => {
-        setChartData(prevState => ({
+        setChartData((prevState: { options: { fill: { gradient: any } } }) => ({
           ...prevState,
           series: [
             {
