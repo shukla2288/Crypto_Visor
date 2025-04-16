@@ -66,7 +66,7 @@ CryptoVisor is a sophisticated real-time cryptocurrency trading analytics platfo
 1. Clone the repository
 ```bash
 git clone https://github.com/shukla2288/Crypto_Visor
-cd CryptoVisor
+cd Crypto_Visor
 ```
 
 2. Install dependencies
