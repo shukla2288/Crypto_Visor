@@ -28,7 +28,7 @@ CryptoVisor is a sophisticated real-time cryptocurrency trading analytics platfo
 [Watch the Demo Video](https://drive.google.com/file/d/1uKyvOWAmTp4um0kBjLmykw-T6gX9uAuT/view?usp=sharing)
 
 ## 🔗 Live Demo
-[View Live Project](https://github.com/shukla2288/Crypto_Visor)
+[View Live Project](https://crypto-visor.vercel.app/trading)
 
 ## ✨ Features
 
@@ -83,7 +83,7 @@ npm run dev
 yarn dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+4. Open [http://localhost:3000] or watch live through this [https://crypto-visor.vercel.app/trading] in your browser
 
 ## 🛠 Tech Stack
 
