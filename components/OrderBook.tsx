@@ -1,147 +1,87 @@
-import { useEffect, useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Spinner } from "@/components/ui/spinner";
-import { ArrowDownUp, Book, TrendingDown, TrendingUp } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+"use client"
+
+import { useState, useMemo } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Spinner } from "@/components/ui/spinner"
+import { Book } from "lucide-react"
 
 interface OrderBookEntry {
-  price: number;
-  amount: number;
-  total: number;
-  change: number;
+  price: number
+  amount: number
+  total: number
+  change: number
 }
 
 interface OrderBookProps {
-  loading: boolean;
+  loading: boolean
   orderBookData: {
-    bids: OrderBookEntry[];
-    asks: OrderBookEntry[];
-  };
+    bids: OrderBookEntry[]
+    asks: OrderBookEntry[]
+  }
   selectedPair?: {
-    symbol: string;
-    name: string;
-  };
+    symbol: string
+    name: string
+  }
 }
 
 export default function OrderBook({ loading, orderBookData, selectedPair }: OrderBookProps) {
-  const [groupingSize, setGroupingSize] = useState<number>(0.5);
-  const [hoveredPrice, setHoveredPrice] = useState<number | null>(null);
-  const [displayMode, setDisplayMode] = useState<"both" | "bids" | "asks">("both");
-
-  // Get the base and quote currency from the trading pair
-  const [baseCurrency, quoteCurrency] = selectedPair?.symbol.split('-') || ['', ''];
+  const [groupingSize, setGroupingSize] = useState<number>(0.5)
+  const [displayMode, setDisplayMode] = useState<"both" | "bids" | "asks">("both")
 
   // Calculate maximum total for percentage bars
   const maxTotal = useMemo(() => {
-    const maxBidTotal = Math.max(...orderBookData.bids.map((bid) => bid.total));
-    const maxAskTotal = Math.max(...orderBookData.asks.map((ask) => ask.total));
-    return Math.max(maxBidTotal, maxAskTotal);
-  }, [orderBookData]);
+    if (!orderBookData?.bids?.length || !orderBookData?.asks?.length) return 0
+    const maxBidTotal = Math.max(...orderBookData.bids.map((bid) => bid.total))
+    const maxAskTotal = Math.max(...orderBookData.asks.map((ask) => ask.total))
+    return Math.max(maxBidTotal, maxAskTotal)
+  }, [orderBookData])
 
   // Format number with appropriate decimals based on trading pair
   const formatNumber = (num: number, type: 'price' | 'amount' | 'total' = 'amount') => {
-    if (!num) return '0.00';
+    if (!num) return '0.00'
     
     // Get decimals based on type and trading pair
-    let decimals = 8;
+    let decimals = 8
     if (type === 'price') {
       if (selectedPair?.symbol.includes('USD')) {
-        decimals = 2;
+        decimals = 2
       } else if (selectedPair?.symbol.includes('BTC')) {
-        decimals = 8;
+        decimals = 8
       } else if (selectedPair?.symbol.includes('ETH')) {
-        decimals = 6;
+        decimals = 6
       }
     }
 
     return num.toLocaleString(undefined, {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
-    });
-  };
+    })
+  }
 
-  // Format number with appropriate decimals based on trading pair
+  // Format price with appropriate decimals based on trading pair
   const formatPrice = (price: number) => {
-    if (!price) return '0.00';
+    if (!price) return '0.00'
     
     // Get decimals based on trading pair
-    let decimals = 2; // Default for USD pairs
+    let decimals = 2 // Default for USD pairs
     
     // Handle Binance WebSocket price normalization
-    let normalizedPrice = price;
+    let normalizedPrice = price
     if (selectedPair?.symbol.includes('XRP-USD') && price > 1000) {
-      normalizedPrice = price / 40000; // Normalize the price for XRP-USD
+      normalizedPrice = price / 40000 // Normalize the price for XRP-USD
     }
     
     if (selectedPair?.symbol.includes('BTC')) {
-      decimals = 8;
+      decimals = 8
     } else if (selectedPair?.symbol.includes('ETH')) {
-      decimals = 6;
+      decimals = 6
     } else if (selectedPair?.symbol.includes('XRP')) {
-      decimals = 4;
+      decimals = 4
     }
 
-    return normalizedPrice.toFixed(decimals);
-  };
-
-  // Calculate price change color and icon
-  const getPriceChangeInfo = (change: number) => {
-    if (change > 0) {
-      return { color: "text-green-500", icon: <TrendingUp className="h-3 w-3" /> };
-    } else if (change < 0) {
-      return { color: "text-red-500", icon: <TrendingDown className="h-3 w-3" /> };
-    }
-    return { color: "text-gray-500", icon: null };
-  };
-
-  const renderOrderRow = (order: OrderBookEntry, side: "bid" | "ask") => {
-    const percentage = (order.total / maxTotal) * 100;
-    const { color, icon } = getPriceChangeInfo(order.change);
-    const isHovered = hoveredPrice === order.price;
-
-    return (
-      <motion.div
-        key={order.price}
-        initial={{ opacity: 0, x: side === "bid" ? -20 : 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: side === "bid" ? -20 : 20 }}
-        className={`relative grid grid-cols-3 text-sm py-1.5 px-3 cursor-pointer border-l-2 ${
-          isHovered ? "bg-gray-700/50" : "bg-transparent"
-        } ${
-          side === "bid" 
-            ? "border-l-green-500/20 hover:border-l-green-500" 
-            : "border-l-red-500/20 hover:border-l-red-500"
-        }`}
-        onMouseEnter={() => setHoveredPrice(order.price)}
-        onMouseLeave={() => setHoveredPrice(null)}
-      >
-        {/* Background percentage bar */}
-        <div
-          className={`absolute top-0 left-0 h-full ${
-            side === "bid" ? "bg-green-500/5" : "bg-red-500/5"
-          }`}
-          style={{ width: `${percentage}%` }}
-        />
-
-        {/* Price */}
-        <div className={`relative z-10 ${side === "bid" ? "text-green-500" : "text-red-500"} font-medium`}>
-          {formatPrice(order.price)}
-          {icon && <span className="ml-1 inline-block">{icon}</span>}
-        </div>
-
-        {/* Amount */}
-        <div className="relative z-10 text-right text-gray-300">
-          {formatNumber(order.amount, 'amount')}
-        </div>
-
-        {/* Total */}
-        <div className="relative z-10 text-right text-gray-400">
-          {formatNumber(order.total, 'total')}
-        </div>
-      </motion.div>
-    );
-  };
+    return normalizedPrice.toFixed(decimals)
+  }
 
   return (
     <Card className="bg-gray-800/50 backdrop-blur-sm border-gray-700 shadow-xl h-[calc(100vh-12rem)] max-h-[800px] min-h-[600px] overflow-hidden">
@@ -150,13 +90,13 @@ export default function OrderBook({ loading, orderBookData, selectedPair }: Orde
           <div className="flex items-center gap-2">
             <Book className="h-6 w-6 text-amber-500" />
             <CardTitle className="text-xl font-bold text-gray-100">
-          Order Book
+              Order Book
               {selectedPair && (
                 <span className="ml-2 text-sm text-gray-400">
                   {selectedPair.name}
                 </span>
               )}
-        </CardTitle>
+            </CardTitle>
           </div>
           <div className="flex items-center gap-3">
             {/* Display Mode Toggle */}
@@ -264,7 +204,7 @@ export default function OrderBook({ loading, orderBookData, selectedPair }: Orde
                   <div>Price</div>
                   <div className="text-right">Amount</div>
                   <div className="text-right">Total</div>
-            </div>
+                </div>
                 <div className="space-y-px">
                   {orderBookData.bids.map((bid) => (
                     <div
@@ -290,5 +230,5 @@ export default function OrderBook({ loading, orderBookData, selectedPair }: Orde
         )}
       </CardContent>
     </Card>
-  );
+  )
 }

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
 import dynamic from "next/dynamic"
 import { TrendingUp, TrendingDown } from "lucide-react"
+import { ApexOptions } from 'apexcharts'
 
 // Dynamically import ApexCharts to avoid SSR issues
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })
@@ -22,6 +23,21 @@ interface OrderBookData {
   asks: OrderBookEntry[]
 }
 
+interface ChartDataPoint {
+  x: number
+  y: number
+}
+
+interface ChartSeries {
+  name: string
+  data: ChartDataPoint[]
+}
+
+interface ChartData {
+  series: ChartSeries[]
+  options: ApexOptions
+}
+
 interface MarketDepthProps {
   loading: boolean
   orderBookData: OrderBookData
@@ -29,7 +45,7 @@ interface MarketDepthProps {
 }
 
 export default function MarketDepth({ loading, orderBookData, className = "" }: MarketDepthProps) {
-  const [chartData, setChartData] = useState<any>({
+  const [chartData, setChartData] = useState<ChartData>({
     series: [
       {
         name: "Bids",
@@ -43,28 +59,20 @@ export default function MarketDepth({ loading, orderBookData, className = "" }: 
     options: {
       chart: {
         type: "area",
-        height: 200,
-        toolbar: {
-          show: true,
-          tools: {
-            download: true,
-            selection: true,
-            zoom: true,
-            zoomin: true,
-            zoomout: true,
-            pan: true,
-            reset: true,
-          },
-          autoSelected: "zoom",
-        },
+        height: 400,
         animations: {
           enabled: true,
-          easing: "easeinout",
           speed: 800,
           dynamicAnimation: {
             enabled: true,
-            speed: 350,
-          },
+            speed: 350
+          }
+        },
+        toolbar: {
+          show: false
+        },
+        zoom: {
+          enabled: false
         },
         background: "transparent",
         foreColor: "#94a3b8",
@@ -126,10 +134,20 @@ export default function MarketDepth({ loading, orderBookData, className = "" }: 
         },
         x: {
           show: true,
-          formatter: (val: number) => `Price: ${val.toFixed(2)}`,
+          formatter: (val: number) => {
+            return val.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })
+          }
         },
         y: {
-          formatter: (val: number) => `Volume: ${val.toFixed(4)}`,
+          formatter: (val: number) => {
+            return val.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })
+          }
         },
         marker: {
           show: true,
@@ -138,7 +156,13 @@ export default function MarketDepth({ loading, orderBookData, className = "" }: 
       xaxis: {
         type: "numeric",
         labels: {
-          formatter: (val: number) => val.toFixed(2),
+          formatter: (value: string) => {
+            const num = parseFloat(value)
+            return num.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })
+          },
           style: {
             colors: "#94a3b8",
             fontSize: "11px",
@@ -156,7 +180,12 @@ export default function MarketDepth({ loading, orderBookData, className = "" }: 
       yaxis: {
         tickAmount: 4,
         labels: {
-          formatter: (val: number) => val.toFixed(4),
+          formatter: (val: number) => {
+            return val.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })
+          },
           style: {
             colors: "#94a3b8",
             fontSize: "11px",
@@ -191,7 +220,7 @@ export default function MarketDepth({ loading, orderBookData, className = "" }: 
       y: ask.total,
     }))
 
-    setChartData((prevState: any) => ({
+    setChartData((prevState: ChartData) => ({
       ...prevState,
       series: [
         {

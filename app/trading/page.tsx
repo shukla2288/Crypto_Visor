@@ -3,13 +3,11 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import Link from "next/link"
 import { ArrowLeft, Plus, Minus } from "lucide-react"
-import Header from "@/components/Header"
 import SpreadIndicator from "@/components/SpreadIndicator"
 import OrderbookImbalance from "@/components/OrderbookImbalance"
 import MarketDepth from "@/components/MarketDepth"
 import OrderBook from "@/components/OrderBook"
 import { tradingPairs, TradingPair } from "@/constants/trading"
-import { Badge } from "@/components/ui/badge"
 
 // Interface for an individual order book entry
 interface OrderBookEntry {
@@ -46,7 +44,6 @@ export default function TradingView() {
   const [imbalance, setImbalance] = useState<number>(0)
   const [selectedPair, setSelectedPair] = useState<TradingPair>(tradingPairs[0])
   const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
   const [openFAQs, setOpenFAQs] = useState<number[]>([])
 
   // Refs for WebSocket and data processing
@@ -59,7 +56,6 @@ export default function TradingView() {
   // Enhanced WebSocket connection status tracking
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected')
   const connectionAttemptsRef = useRef<number>(0)
-  const maxConnectionAttempts = 5
 
   // Add connection queue management
   const connectionQueueRef = useRef<string[]>([])
@@ -71,6 +67,8 @@ export default function TradingView() {
     messageCount: 0,
     lastMessageTime: 0
   })
+
+  const reconnectRef = useRef<() => void>()
 
   // Enhanced cleanup with better memory management and performance checks
   const cleanup = useCallback(() => {
@@ -90,7 +88,7 @@ export default function TradingView() {
         if (wsRef.current.readyState === WebSocket.OPEN) {
           wsRef.current.close(1000, "Cleanup")
         }
-      } catch (err) {
+      } catch {
         // Silent cleanup
       }
       wsRef.current = null
@@ -115,26 +113,6 @@ export default function TradingView() {
     setConnectionStatus('disconnected')
   }, [])
 
-  // Format trading pair symbol for Binance WebSocket
-  const formatSymbol = useCallback((symbol: string) => {
-    // Convert XRP-USD to xrpusdt format
-    return symbol.toLowerCase().replace('-', '').replace('usd', 'usdt')
-  }, [])
-
-  // Debounce function to prevent too many updates
-  const debounce = useCallback((fn: Function, ms: number) => {
-    let timeoutId: NodeJS.Timeout | null = null
-    return (...args: any[]) => {
-      if (timeoutId) {
-        clearTimeout(timeoutId)
-      }
-      timeoutId = setTimeout(() => {
-        fn(...args)
-        timeoutId = null
-      }, ms)
-    }
-  }, [])
-
   // Process price level with better error handling and price normalization
   const processPriceLevel = useCallback((level: [string, string]) => {
     if (!Array.isArray(level) || level.length !== 2) {
@@ -155,7 +133,7 @@ export default function TradingView() {
       }
 
       return { price, amount }
-    } catch (error) {
+    } catch {
       return null
     }
   }, [selectedPair.symbol])
@@ -175,8 +153,8 @@ export default function TradingView() {
 
       // Ensure we don't exceed the maximum number of orders
       return validOrders.slice(0, 20)
-    } catch (error) {
-      console.error("Error processing orders:", error)
+    } catch {
+      console.error("Error processing orders")
       return []
     }
   }, [processPriceLevel])
@@ -202,10 +180,18 @@ export default function TradingView() {
           change: 0 // Will be updated later
         }
       })
-    } catch (error) {
-      console.error("Error calculating totals:", error)
+    } catch {
+      console.error("Error calculating totals")
       return []
     }
+  }, [])
+
+  // Calculate imbalance separately to reduce complexity
+  const calculateImbalance = useCallback((orderBook: OrderBookData) => {
+    const bidVolume = orderBook.bids.reduce((sum, bid) => sum + (bid.amount || 0), 0)
+    const askVolume = orderBook.asks.reduce((sum, ask) => sum + (ask.amount || 0), 0)
+    const totalVolume = bidVolume + askVolume
+    return totalVolume > 0 ? (bidVolume - askVolume) / totalVolume : 0
   }, [])
 
   // Update order book with optimized performance and throttling
@@ -226,7 +212,7 @@ export default function TradingView() {
       cleanup()
       setTimeout(() => {
         if (wsRef.current === null) {
-          setupWebSocket()
+          reconnectRef.current?.()
         }
       }, 1000)
       return
@@ -274,18 +260,10 @@ export default function TradingView() {
         })
         setImbalance(calculateImbalance(newOrderBook))
       })
-    } catch (error) {
+    } catch {
       // Silent error handling
     }
-  }, [processOrders, calculateTotals, cleanup])
-
-  // Calculate imbalance separately to reduce complexity
-  const calculateImbalance = useCallback((orderBook: OrderBookData) => {
-    const bidVolume = orderBook.bids.reduce((sum, bid) => sum + (bid.amount || 0), 0)
-    const askVolume = orderBook.asks.reduce((sum, ask) => sum + (ask.amount || 0), 0)
-    const totalVolume = bidVolume + askVolume
-    return totalVolume > 0 ? (bidVolume - askVolume) / totalVolume : 0
-  }, [])
+  }, [processOrders, calculateTotals, cleanup, calculateImbalance])
 
   // Enhanced WebSocket message handler with rate limiting
   const handleMessage: MessageHandler = useCallback((event) => {
@@ -315,7 +293,7 @@ export default function TradingView() {
           updateOrderBook(data.bids, data.asks)
         }
       }
-    } catch (error) {
+    } catch {
       // Silent error handling
     }
   }, [updateOrderBook, selectedPair.binanceSymbol])
@@ -337,7 +315,7 @@ export default function TradingView() {
           cleanup()
           setConnectionStatus('error')
           setLoading(false)
-          reconnectTimeoutRef.current = setTimeout(setupWebSocket, 3000)
+          reconnectTimeoutRef.current = setTimeout(() => reconnectRef.current?.(), 3000)
         }
       }, 5000)
 
@@ -351,7 +329,7 @@ export default function TradingView() {
           if (ws.readyState === WebSocket.OPEN) {
             try {
               ws.send(JSON.stringify({ method: "ping" }))
-            } catch (error) {
+            } catch {
               clearInterval(pingInterval)
               if (ws.readyState === WebSocket.OPEN) {
                 ws.close()
@@ -377,30 +355,43 @@ export default function TradingView() {
         cleanup()
         setConnectionStatus('error')
         setLoading(false)
-        reconnectTimeoutRef.current = setTimeout(setupWebSocket, 3000)
+        reconnectTimeoutRef.current = setTimeout(() => reconnectRef.current?.(), 3000)
       }
 
       ws.onclose = (event) => {
         clearTimeout(connectionTimeout)
         cleanup()
         if (event.code !== 1000) {
-          reconnectTimeoutRef.current = setTimeout(setupWebSocket, 3000)
+          reconnectTimeoutRef.current = setTimeout(() => reconnectRef.current?.(), 3000)
         }
       }
 
       wsRef.current = ws
 
-    } catch (error) {
+    } catch {
       cleanup()
       setConnectionStatus('error')
       setLoading(false)
-      reconnectTimeoutRef.current = setTimeout(setupWebSocket, 3000)
+      reconnectTimeoutRef.current = setTimeout(() => reconnectRef.current?.(), 3000)
     }
 
     return () => {
       cleanup()
     }
   }, [selectedPair, handleMessage, cleanup])
+
+  // WebSocket reconnection function
+  const reconnectWebSocket = useCallback(() => {
+    if (wsRef.current) {
+      wsRef.current.close()
+    }
+    setupWebSocket()
+  }, [setupWebSocket])
+
+  // Store the reconnection function in the ref
+  useEffect(() => {
+    reconnectRef.current = reconnectWebSocket
+  }, [reconnectWebSocket])
 
   // Process connection queue with performance monitoring
   const processConnectionQueue = useCallback(async () => {
